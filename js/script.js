@@ -1,4 +1,3 @@
-import {setCookie, getCookie} from "./cookie.js";
 import {convert_xml} from "./convert.js";
 
 const defaultScene =
@@ -6,9 +5,9 @@ const defaultScene =
     "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.04\">\n" +
     "</Node>\n";
 
-let savedXml = getCookie('xmlCode');
+let savedXml = localStorage.getItem('xmlCode');
 if (savedXml === null) {
-    setCookie('xmlCode', encodeURIComponent(defaultScene));
+    localStorage.setItem('xmlCode', defaultScene);
 }
 
 // Load Monaco Editor
@@ -33,7 +32,7 @@ window.require(['vs/editor/editor.main'], function() {
     });
 
     // Load XML content from cookie on page load
-    let savedXml = getCookie('xmlCode');
+    let savedXml = localStorage.getItem('xmlCode');
     if (savedXml) {
         savedXml = decodeURIComponent(savedXml);
 
