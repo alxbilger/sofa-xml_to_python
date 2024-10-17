@@ -1,9 +1,10 @@
 import {setCookie, getCookie} from "./cookie.js";
+import {convert_xml} from "./convert.js";
 
 const defaultScene =
     "<?xml version=\"1.0\" ?>\n" +
     "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.04\">\n" +
-    "</Node>";
+    "</Node>\n";
 
 let savedXml = getCookie('xmlCode');
 if (savedXml === null) {
@@ -34,34 +35,26 @@ window.require(['vs/editor/editor.main'], function() {
     // Load XML content from cookie on page load
     let savedXml = getCookie('xmlCode');
     if (savedXml) {
-        console.log(`found cookie ${savedXml}`);
-        xmlEditor.setValue(decodeURIComponent(savedXml));
-    }
+        savedXml = decodeURIComponent(savedXml);
 
-    // Function to generate Python code from XML
-    function generatePythonFromXML(xml) {
-        return `# Python code generated from XML\nprint("Generated from XML")\nxml_data = """${xml}"""\nprint(xml_data)`;
+        try {
+            let python_code = convert_xml(savedXml);
+            xmlEditor.setValue(savedXml);
+            pythonEditor.setValue(python_code);
+
+        } catch (error) {
+            console.error('XML Error:', error.message);
+        }
     }
 
     // Function to handle XML changes
     xmlEditor.onDidChangeModelContent(function() {
+
         let xmlCode = xmlEditor.getValue();
 
         try {
-            // Parse XML to check if it's valid
-            let parser = new DOMParser();
-            let xmlDoc = parser.parseFromString(xmlCode, 'application/xml');
-            let parseError = xmlDoc.getElementsByTagName('parsererror');
-
-            if (parseError.length > 0) {
-                throw new Error('Invalid XML');
-            }
-
-            // XML is valid, generate Python code
-            pythonEditor.setValue(generatePythonFromXML(xmlCode));
-
-            // Save XML to cookie
-            setCookie('xmlCode', encodeURIComponent(xmlCode)); // Store XML for 7 days
+            let python_code = convert_xml(xmlCode);
+            pythonEditor.setValue(python_code);
 
         } catch (error) {
             console.error('XML Error:', error.message);
