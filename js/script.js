@@ -1,29 +1,18 @@
+import {setCookie, getCookie} from "./cookie.js";
+
+const defaultScene =
+    "<?xml version=\"1.0\" ?>\n" +
+    "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.04\">\n" +
+    "</Node>";
+
+let savedXml = getCookie('xmlCode');
+if (savedXml === null) {
+    setCookie('xmlCode', encodeURIComponent(defaultScene));
+}
+
 // Load Monaco Editor
-window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' } });
+window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
 window.require(['vs/editor/editor.main'], function() {
-
-    // Helper function to set a cookie
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            let date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
-    }
-
-    // Helper function to get a cookie by name
-    function getCookie(name) {
-        let nameEQ = name + "=";
-        let ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-    }
 
     // XML Editor (Left Panel)
     let xmlEditor = monaco.editor.create(document.getElementById('xml-editor'), {
