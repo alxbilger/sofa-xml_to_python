@@ -34,6 +34,7 @@ window.require(['vs/editor/editor.main'], function() {
     // Load XML content from cookie on page load
     let savedXml = getCookie('xmlCode');
     if (savedXml) {
+        console.log(`found cookie ${savedXml}`);
         xmlEditor.setValue(decodeURIComponent(savedXml));
     }
 
