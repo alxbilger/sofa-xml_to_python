@@ -5,10 +5,14 @@ const defaultScene =
     "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.04\">\n" +
     "</Node>\n";
 
+
+
 let savedXml = localStorage.getItem('xmlCode');
 if (savedXml === null) {
     localStorage.setItem('xmlCode', defaultScene);
 }
+
+let pythonEditor;
 
 // Load Monaco Editor
 window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
@@ -23,7 +27,7 @@ window.require(['vs/editor/editor.main'], function() {
     });
 
     // Python Editor (Right Panel - Readonly)
-    let pythonEditor = monaco.editor.create(document.getElementById('python-editor'), {
+    pythonEditor = monaco.editor.create(document.getElementById('python-editor'), {
         value: '',
         language: 'python',
         theme: 'vs-dark',
@@ -81,4 +85,6 @@ window.require(['vs/editor/editor.main'], function() {
             console.warn('Please drop a valid XML file.');
         }
     });
+
+
 });
