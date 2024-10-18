@@ -75,7 +75,7 @@ window.require(['vs/editor/editor.main'], function() {
         event.preventDefault();
         let file = event.dataTransfer.files[0];
 
-        if (file && file.type === 'text/xml') {
+        if (file) {
             let reader = new FileReader();
             reader.onload = function(e) {
                 xmlEditor.setValue(e.target.result);
