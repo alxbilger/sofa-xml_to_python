@@ -2,9 +2,8 @@ import {convert_xml} from "./convert.js";
 
 const defaultScene =
     "<?xml version=\"1.0\" ?>\n" +
-    "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.04\">\n" +
+    "<Node name=\"root\" gravity=\"0 -9.81 0\" dt=\"0.01\">\n" +
     "</Node>\n";
-
 
 
 let savedXml = localStorage.getItem('xmlCode');
@@ -12,7 +11,7 @@ if (savedXml === null) {
     localStorage.setItem('xmlCode', defaultScene);
 }
 
-let pythonEditor;
+export let pythonEditor;
 
 // Load Monaco Editor
 window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
@@ -85,6 +84,4 @@ window.require(['vs/editor/editor.main'], function() {
             console.warn('Please drop a valid XML file.');
         }
     });
-
-
 });
