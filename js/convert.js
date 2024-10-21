@@ -73,20 +73,19 @@ function processNode(node, parent_variable_name, linePrefix = '', indent = defau
 function convertXmlToPython(xmlString, linePrefix = '', indent = default_ident) {
     let python_code = '';
 
-
     const xmlDoc = parseXMLToDOM(xmlString);
 
     const rootNode = xmlDoc.documentElement;
 
     let attributes = Array.from(rootNode.attributes || []);
     if (attributes) {
-        python_code = attributes.map(attr => `${indent}${root_node_variable_name}.${attr.name} = "${attr.value}"`).join('\n') + '\n\n';
+        python_code += attributes.map(attr => `${indent}${root_node_variable_name}.${attr.name} = "${attr.value}"`).join('\n') + '\n\n';
     }
 
     python_code += processChildNodes(rootNode, root_node_variable_name, linePrefix, indent);
 
     python_code = replaceMultipleNewlines(python_code);
-    python_code = `${linePrefix}def createScene(${root_node_variable_name}):\n` + python_code;
+    python_code = `import Sofa\n\n${linePrefix}def createScene(${root_node_variable_name}):\n` + python_code;
 
     return python_code;
 }
