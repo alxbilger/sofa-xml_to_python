@@ -14,59 +14,72 @@ function parseXMLToDOM(xmlString) {
     return parser.parseFromString(xmlString, "application/xml");
 }
 
+const default_ident = '    ';
+
+function processChildNodes(node, parentVariableName, linePrefix = '', indent = default_ident) {
+    let python_code = '';
+    Array.from(node.childNodes || []).forEach(child => {
+        if (child.nodeType === 1) {
+            const is_node = child.nodeName === "Node";
+            if (is_node) {
+                python_code += processNode(child, parentVariableName) + "\n";
+            } else {
+                const node_attributes = Array.from(child.attributes || []).map(attr => `${attr.name}="${attr.value}"`).join(', ');
+                const node_attributes_string = node_attributes ? `, ${node_attributes}` : "";
+                python_code += `${linePrefix}${indent}${parentVariableName}.addObject('${child.nodeName}'${node_attributes_string})\n`;
+            }
+        }
+    });
+    return python_code;
+}
+
+function processNode(node, parent_variable_name, linePrefix = '', indent = default_ident) {
+    if (!parent_variable_name) {
+        parent_variable_name = 'root_node';  // Default root variable name
+    }
+
+    let python_code = '';
+    const attribute_name = node.attributes.getNamedItem('name');
+    const node_variable_name = attribute_name ? attribute_name.value : 'node';
+    const cleaned_node_variable_name = snakeCase(node_variable_name.replace('.', '_').replace('-', '_').replace(' ', '_'));
+
+    python_code += `${linePrefix}${indent}${cleaned_node_variable_name} = ${parent_variable_name}.addChild('${node_variable_name}'`;
+
+    // Extract attributes
+    let attributes = Array.from(node.attributes || []);
+    attributes = attributes.filter((element) => element.name !== "name");
+    const nodeAttributes = attributes.map(attr => `${attr.name}="${attr.value}"`).join(', ');
+
+    if (nodeAttributes) {
+        python_code += `, ${nodeAttributes}`;
+    }
+    python_code += ')\n\n';
+
+    parent_variable_name = cleaned_node_variable_name;
+    python_code += processChildNodes(node,  parent_variable_name);
+
+    return python_code;
+}
+
 // Convert XML to Python script logic
-function convertXmlToPython(xmlString, linePrefix = '', indent = '    ') {
-    let pythonCode = '';
+function convertXmlToPython(xmlString, linePrefix = '', indent = default_ident) {
+    let python_code = '';
 
     const xmlDoc = parseXMLToDOM(xmlString);
 
-    function processNode(node, parentVariableName) {
-        if (!parentVariableName) {
-            parentVariableName = 'root_node';  // Default root variable name
-        }
+    const rootNode = xmlDoc.documentElement;
 
-        let pythonCode = '';
-        const attributeName = node.attributes.getNamedItem('name');
-        const nodeVariableName = attributeName ? attributeName.value : 'node';
-        const cleanedNodeVariableName = snakeCase(nodeVariableName.replace('.', '_').replace('-', '_').replace(' ', '_'));
-
-        pythonCode += `${linePrefix}${indent}${cleanedNodeVariableName} = ${parentVariableName}.addChild('${nodeVariableName}'`;
-
-        // Extract attributes
-        let attributes = Array.from(node.attributes || []);
-        attributes = attributes.filter((element) => element.name !== "name");
-        const nodeAttributes = attributes.map(attr => `${attr.name}="${attr.value}"`).join(', ');
-
-        if (nodeAttributes) {
-            pythonCode += `, ${nodeAttributes}`;
-        }
-        pythonCode += ')\n\n';
-
-        parentVariableName = cleanedNodeVariableName;
-
-        // Process child nodes
-        Array.from(node.childNodes || []).forEach(child => {
-            if (child.nodeType === 1) {
-                const isNode = child.nodeName === "Node";
-                if (isNode) {
-                    pythonCode += processNode(child, parentVariableName) + "\n";
-                } else {
-                    const nodeAttributes = Array.from(child.attributes || []).map(attr => `${attr.name}="${attr.value}"`).join(', ');
-                    const nodeAttributesString = nodeAttributes ? `, ${nodeAttributes}` : "";
-                    pythonCode += `${linePrefix}${indent}${parentVariableName}.addObject('${child.nodeName}'${nodeAttributesString})\n`;
-                }
-            }
-        });
-
-        return pythonCode;
+    let attributes = Array.from(rootNode.attributes || []);
+    if (attributes) {
+        python_code = attributes.map(attr => `${indent}root_node.${attr.name} = "${attr.value}"`).join('\n') + '\n\n';
     }
 
-    const rootNode = xmlDoc.documentElement;
-    pythonCode = processNode(rootNode, null);
-    pythonCode = replaceMultipleNewlines(pythonCode);
-    pythonCode = `${linePrefix}def createScene(root_node):\n` + pythonCode;
+    python_code += processChildNodes(rootNode, null, linePrefix, indent);
 
-    return pythonCode;
+    python_code = replaceMultipleNewlines(python_code);
+    python_code = `${linePrefix}def createScene(root_node):\n` + python_code;
+
+    return python_code;
 }
 
 // Function to generate Python code from XML
