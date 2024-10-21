@@ -15,7 +15,7 @@ function parseXMLToDOM(xmlString) {
 }
 
 // Convert XML to Python script logic
-function convertXmlToPython(xmlString, linePrefix = '', indent = '   ') {
+function convertXmlToPython(xmlString, linePrefix = '', indent = '    ') {
     let pythonCode = '';
 
     const xmlDoc = parseXMLToDOM(xmlString);
@@ -46,7 +46,7 @@ function convertXmlToPython(xmlString, linePrefix = '', indent = '   ') {
 
         // Process child nodes
         Array.from(node.childNodes || []).forEach(child => {
-            if (child.nodeType == 1) {
+            if (child.nodeType === 1) {
                 const isNode = child.nodeName === "Node";
                 if (isNode) {
                     pythonCode += processNode(child, parentVariableName) + "\n";
