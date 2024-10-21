@@ -17,3 +17,5 @@ Historically, SOFA understood only XML format to describe a simulation. But SOFA
 - Convert XML scene to Python
 - Basic editor features: copy/paste, selection, etc
 - Drag and drop of an XML file
+- Copy to clipboard
+- Download file
