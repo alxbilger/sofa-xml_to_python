@@ -1,6 +1,9 @@
 ﻿// Function to convert string to snake_case
 function snakeCase(s) {
-    return s.replace(/([a-zA-Z])(?=[A-Z])/g,'$1_').toLowerCase();
+    if (s !== s.toUpperCase()) {
+        return s.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
+    }
+    return s.toLowerCase();
 }
 
 // Function to replace multiple newlines with exactly 2 newlines
@@ -14,19 +17,24 @@ function parseXMLToDOM(xmlString) {
     return parser.parseFromString(xmlString, "application/xml");
 }
 
+const root_node_variable_name = 'root_node';
 const default_ident = '    ';
 
-function processChildNodes(node, parentVariableName, linePrefix = '', indent = default_ident) {
+function processChildNodes(node, parent_variable_name, linePrefix = '', indent = default_ident) {
+    if (!parent_variable_name) {
+        parent_variable_name = root_node_variable_name;
+    }
+    
     let python_code = '';
     Array.from(node.childNodes || []).forEach(child => {
         if (child.nodeType === 1) {
             const is_node = child.nodeName === "Node";
             if (is_node) {
-                python_code += processNode(child, parentVariableName) + "\n";
+                python_code += processNode(child, parent_variable_name) + "\n";
             } else {
                 const node_attributes = Array.from(child.attributes || []).map(attr => `${attr.name}="${attr.value}"`).join(', ');
                 const node_attributes_string = node_attributes ? `, ${node_attributes}` : "";
-                python_code += `${linePrefix}${indent}${parentVariableName}.addObject('${child.nodeName}'${node_attributes_string})\n`;
+                python_code += `${linePrefix}${indent}${parent_variable_name}.addObject('${child.nodeName}'${node_attributes_string})\n`;
             }
         }
     });
@@ -35,7 +43,7 @@ function processChildNodes(node, parentVariableName, linePrefix = '', indent = d
 
 function processNode(node, parent_variable_name, linePrefix = '', indent = default_ident) {
     if (!parent_variable_name) {
-        parent_variable_name = 'root_node';  // Default root variable name
+        parent_variable_name = root_node_variable_name;
     }
 
     let python_code = '';
@@ -65,19 +73,20 @@ function processNode(node, parent_variable_name, linePrefix = '', indent = defau
 function convertXmlToPython(xmlString, linePrefix = '', indent = default_ident) {
     let python_code = '';
 
+
     const xmlDoc = parseXMLToDOM(xmlString);
 
     const rootNode = xmlDoc.documentElement;
 
     let attributes = Array.from(rootNode.attributes || []);
     if (attributes) {
-        python_code = attributes.map(attr => `${indent}root_node.${attr.name} = "${attr.value}"`).join('\n') + '\n\n';
+        python_code = attributes.map(attr => `${indent}${root_node_variable_name}.${attr.name} = "${attr.value}"`).join('\n') + '\n\n';
     }
 
-    python_code += processChildNodes(rootNode, null, linePrefix, indent);
+    python_code += processChildNodes(rootNode, root_node_variable_name, linePrefix, indent);
 
     python_code = replaceMultipleNewlines(python_code);
-    python_code = `${linePrefix}def createScene(root_node):\n` + python_code;
+    python_code = `${linePrefix}def createScene(${root_node_variable_name}):\n` + python_code;
 
     return python_code;
 }
